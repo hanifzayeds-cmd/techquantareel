@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>TechOneTa | Total Reel Domination - MEGA Cloud Storage</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <!-- MEGA Upload Widget -->
+    <script type="text/javascript" src="https://mega.nz/uploader/js/mega_uploader.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0A0C10; color: #EFF3FC; line-height: 1.5; overflow-x: hidden; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .logo { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #E2B0FF, #9F7AEA); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .logo span { font-size: 0.9rem; font-weight: 400; background: none; color: #8b8fa5; }
+        .nav-buttons { display: flex; gap: 14px; flex-wrap: wrap; }
+        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 40px; color: white; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+        .btn-outline:hover { border-color: #9F7AEA; background: rgba(159, 122, 234, 0.1); }
+        .btn-primary { background: linear-gradient(95deg, #9F7AEA, #6E48C8); border: none; padding: 12px 28px; border-radius: 40px; color: white; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; font-size: 1rem; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(110, 72, 200, 0.3); }
+        .hero { text-align: center; padding: 60px 0 40px; }
+        .tagline { font-size: 3.5rem; font-weight: 800; letter-spacing: -2px; background: linear-gradient(135deg, #FFFFFF, #C084FC); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 20px; }
+        .sub { font-size: 1.2rem; color: #A0A5B9; max-width: 650px; margin: 0 auto; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: #12161F; border-radius: 32px; padding: 40px; max-width: 500px; width: 90%; border: 1px solid rgba(159, 122, 234, 0.3); max-height: 90vh; overflow-y: auto; }
+        .modal-content h2 { margin-bottom: 24px; text-align: center; }
+        .modal-content input, .modal-content select { margin-bottom: 16px; width: 100%; padding: 14px 16px; background: #1A1D24; border: 1px solid #2F3542; border-radius: 20px; color: white; }
+        .modal-buttons { display: flex; gap: 12px; margin-top: 20px; }
+        .panel-container { display: none; background: #0F1117; border-radius: 32px; padding: 28px; margin: 40px 0; border: 1px solid #2A2E3A; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 28px; gap: 12px; }
+        .status-badge { background: #1F2937; padding: 6px 14px; border-radius: 40px; font-size: 0.8rem; font-weight: 500; }
+        .form-group { margin-bottom: 20px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        input, textarea, select { width: 100%; padding: 14px 16px; background: #1A1D24; border: 1px solid #2F3542; border-radius: 20px; color: white; font-size: 0.95rem; outline: none; }
+        input:focus, textarea:focus, select:focus { border-color: #D0AFFF; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; color: #C0C5D0; }
+        .upload-area { border: 2px dashed #3A3F4E; border-radius: 24px; padding: 30px; text-align: center; cursor: pointer; transition: 0.2s; margin-top: 20px; }
+        .upload-area:hover { border-color: #D0AFFF; background: rgba(208, 175, 255, 0.05); }
+        .progress-bar { height: 6px; background: #2F3542; border-radius: 10px; overflow: hidden; margin-top: 12px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #D0AFFF, #8A2BE2); width: 0%; transition: width 0.3s; }
+        .admin-table { width: 100%; border-collapse: collapse; overflow-x: auto; display: block; }
+        .admin-table th, .admin-table td { text-align: left; padding: 14px 12px; border-bottom: 1px solid #23262F; vertical-align: top; }
+        .project-status { display: inline-block; padding: 4px 12px; border-radius: 30px; font-size: 0.75rem; font-weight: 600; }
+        .status-pending { background: #B45309; color:#FFEDD5; }
+        .status-processing { background: #2563EB; color:#DBEAFE; }
+        .status-completed { background: #10B981; color:#D1FAF5; }
+        .project-card { background: #171B22; border-radius: 20px; padding: 18px; margin-bottom: 12px; }
+        .toast { position: fixed; bottom: 24px; right: 24px; background: #1E1F2C; border-left: 4px solid #D0AFFF; padding: 14px 24px; border-radius: 60px; z-index: 1000; font-weight: 500; animation: slideIn 0.3s ease; z-index: 1001; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .file-item { background: #1A1D24; padding: 10px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .video-link { color: #D0AFFF; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px; margin-right: 12px; padding: 4px 8px; background: rgba(208, 175, 255, 0.1); border-radius: 8px; }
+        .video-link:hover { background: rgba(208, 175, 255, 0.2); }
+        .mega-badge { background: rgba(208, 175, 255, 0.15); padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; color: #D0AFFF; margin-left: 8px; }
+        @media (max-width: 768px) { .tagline { font-size: 2rem; } .form-row { grid-template-columns: 1fr; } .navbar { flex-direction: column; gap: 16px; } }
+        .admin-stats { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px; padding: 20px; background: #0B0E12; border-radius: 24px; }
+        .stat-card { flex: 1; text-align: center; padding: 16px; background: #131720; border-radius: 20px; min-width: 100px; }
+        .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+        .secure-badge { background: #0D2818; color: #10B981; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 6px; }
+        .status-connected { background: #0D2818; color: #10B981; border-left: 3px solid #10B981; }
+        .status-disconnected { background: #2D1B2E; color: #EF4444; border-left: 3px solid #EF4444; }
+        .folder-info { background: #1A1D24; padding: 10px; border-radius: 12px; font-family: monospace; font-size: 0.8rem; word-break: break-all; }
+        
+        /* MEGA Upload Widget Custom Styling */
+        .mega-uploader-widget {
+            background: #1A1D24 !important;
+            border: 2px dashed #3A3F4E !important;
+            border-radius: 24px !important;
+            padding: 30px !important;
+            text-align: center !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            color: #EFF3FC !important;
+        }
+        .mega-uploader-widget:hover {
+            border-color: #D0AFFF !important;
+            background: rgba(208, 175, 255, 0.05) !important;
+        }
+        .mega-uploader-widget .mega-uploader-icon {
+            font-size: 2rem !important;
+            color: #D0AFFF !important;
+        }
+        .mega-uploader-widget .mega-uploader-text {
+            font-size: 1rem !important;
+            margin-top: 10px !important;
+        }
+        .mega-uploader-widget .mega-uploader-small {
+            font-size: 0.7rem !important;
+            opacity: 0.7 !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="navbar">
+        <div class="logo">TECHONETA<span> // REEL CRAFT</span></div>
+        <div class="nav-buttons">
+            <button id="signupBtn" class="btn-outline"><i class="fas fa-user-plus"></i> Sign Up</button>
+            <button id="loginBtn" class="btn-outline"><i class="fas fa-sign-in-alt"></i> Login</button>
+            <button id="adminBtn" class="btn-outline"><i class="fas fa-chalkboard-user"></i> Admin</button>
+            <button id="logoutBtn" style="display:none;" class="btn-outline"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </div>
+
+    <div class="hero" id="publicHero">
+        <div class="tagline">Total Reel Domination</div>
+        <div class="sub">2-3 minute high-impact reels • 🔐 MEGA Encrypted Storage • Zero-knowledge privacy</div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Login</h2>
+            <input type="email" id="authEmail" placeholder="Email" autocomplete="email">
+            <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password">
+            <div class="modal-buttons">
+                <button id="authSubmitBtn" class="btn-primary" style="flex:1">Continue</button>
+                <button id="closeModalBtn" class="btn-outline">Cancel</button>
+            </div>
+            <p style="margin-top: 16px; text-align:center; font-size:0.8rem;" id="authSwitchText">Don't have an account? <a href="#" id="switchAuthMode" style="color:#D0AFFF;">Sign up</a></p>
+        </div>
+    </div>
+
+    <!-- Client Portal -->
+    <div id="clientPanel" class="panel-container">
+        <div class="panel-header">
+            <h2><i class="fas fa-cloud-upload-alt"></i> Submit Your Reel Project</h2>
+            <div class="secure-badge"><i class="fas fa-check-circle"></i> MEGA Encrypted Storage</div>
+        </div>
+        <div id="megaStatus" style="padding: 12px; border-radius: 12px; margin-bottom: 20px; text-align: center;" class="status-connected">
+            <i class="fas fa-check-circle"></i> ✅ MEGA Storage Ready | Files upload directly to your MEGA folder
+        </div>
+        
+        <form id="projectForm">
+            <div class="form-row">
+                <div class="form-group"><label><i class="fas fa-user"></i> Full Name *</label><input type="text" id="fullName" placeholder="Your full name" required></div>
+                <div class="form-group"><label><i class="fas fa-phone"></i> Phone Number *</label><input type="tel" id="phoneNumber" placeholder="+91 XXXXX XXXXX" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label><i class="fas fa-city"></i> City *</label><input type="text" id="city" placeholder="Your city" required></div>
+                <div class="form-group"><label><i class="fas fa-calendar-alt"></i> Deadline *</label><input type="date" id="deadline" required></div>
+            </div>
+            <div class="form-group"><label><i class="fas fa-heading"></i> Project Title *</label><input type="text" id="projectTitle" placeholder="e.g., Summer Vibes Reel" required></div>
+            <div class="form-group"><label><i class="fas fa-align-left"></i> Creative Direction *</label><textarea id="description" rows="4" placeholder="Describe your vision: positive vibe, animations, music preference, color tone..." required></textarea></div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-video"></i> Upload Clips to MEGA (MP4/MOV)</label>
+                <!-- MEGA Upload Widget -->
+                <div id="megaUploadWidget"></div>
+                <div id="uploadedFilesList" style="margin-top: 15px;"></div>
+                <div class="progress-bar" id="uploadProgressBar" style="display:none;"><div class="progress-fill" id="progressFill"></div></div>
+                <div id="uploadStatusMsg" style="margin-top: 12px;"></div>
+            </div>
+            
+            <button type="submit" class="btn-primary" id="submitProjectBtn"><i class="fas fa-paper-plane"></i> Submit Project</button>
+        </form>
+        
+        <div style="margin-top: 40px;">
+            <h3><i class="fas fa-history"></i> Your Projects</h3>
+            <div id="clientProjectsContainer"></div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminPanel" class="panel-container">
+        <div class="panel-header">
+            <h2><i class="fas fa-gauge-high"></i> Admin Dashboard - MEGA Cloud</h2>
+            <div class="secure-badge"><i class="fas fa-crown"></i> Full Admin Access</div>
+        </div>
+        <div class="filter-bar">
+            <select id="statusFilter">
+                <option value="all">All Projects</option>
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="completed">Completed</option>
+            </select>
+            <button id="refreshAdminBtn" class="btn-outline"><i class="fas fa-sync-alt"></i> Refresh</button>
+            <a href="https://mega.nz/folder/P9Ak0CjT#fY-lrIwcw3C1_SwUoJ6TLg" target="_blank" class="btn-outline"><i class="fas fa-folder-open"></i> Open MEGA Folder</a>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="admin-table">
+                <thead>
+                    <tr><th>Client</th><th>Contact</th><th>Project</th><th>Deadline</th><th>Status</th><th>Brief</th><th>MEGA Videos</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="adminTableBody"><tr><td colspan="8">Loading...</td></tr></tbody>
+            </table>
+        </div>
+        <div class="admin-stats">
+            <div class="stat-card"><i class="fas fa-hourglass-half"></i><br><strong id="pendingCount">0</strong><br>Pending</div>
+            <div class="stat-card"><i class="fas fa-spinner"></i><br><strong id="processingCount">0</strong><br>Processing</div>
+            <div class="stat-card"><i class="fas fa-check-circle"></i><br><strong id="completedCount">0</strong><br>Completed</div>
+            <div class="stat-card"><i class="fas fa-users"></i><br><strong id="totalClients">0</strong><br>Clients</div>
+            <div class="stat-card"><i class="fas fa-video"></i><br><strong id="totalVideos">0</strong><br>MEGA Videos</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyCe5wNMrJc1Fv3H4vtJNp0JQpXojlOFDDU",
+        authDomain: "techquantareel.firebaseapp.com",
+        projectId: "techquantareel",
+        storageBucket: "techquantareel.firebasestorage.app",
+        messagingSenderId: "833651445880",
+        appId: "1:833651445880:web:d9a4ed14714e680875dd8d"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // ==================== MEGA CONFIGURATION ====================
+    const MEGA_FOLDER_ID = "P9Ak0CjT";
+    const MEGA_FOLDER_KEY = "fY-lrIwcw3C1_SwUoJ6TLg";
+    const MEGA_FOLDER_URL = "https://mega.nz/folder/P9Ak0CjT#fY-lrIwcw3C1_SwUoJ6TLg";
+    
+    let uploadedMegaFiles = [];
+    let megaWidget = null;
+    
+    // Initialize MEGA Upload Widget
+    function initMEGAWidget() {
+        if (typeof MEGAUploader !== 'undefined') {
+            megaWidget = new MEGAUploader({
+                folder: MEGA_FOLDER_ID,
+                folderKey: MEGA_FOLDER_KEY,
+                element: 'megaUploadWidget',
+                multiple: true,
+                accept: '.mp4,.mov,.avi,.mkv',
+                onFileUpload: function(file) {
+                    console.log('File uploading:', file);
+                    document.getElementById('uploadProgressBar').style.display = 'block';
+                    document.getElementById('uploadStatusMsg').innerHTML = `<i class="fas fa-cloud-upload-alt"></i> Uploading ${file.name} to MEGA...`;
+                },
+                onFileUploadComplete: function(file, response) {
+                    console.log('File uploaded:', file, response);
+                    // Extract the MEGA file URL
+                    let fileUrl = '';
+                    if (response && response.data && response.data.url) {
+                        fileUrl = response.data.url;
+                    } else if (response && response.url) {
+                        fileUrl = response.url;
+                    } else {
+                        // Construct URL from file handle
+                        fileUrl = `https://mega.nz/file/${response.fileHandle}#${MEGA_FOLDER_KEY}`;
+                    }
+                    
+                    uploadedMegaFiles.push({
+                        fileName: file.name,
+                        fileSize: file.size,
+                        megaUrl: fileUrl,
+                        megaFileId: response.fileHandle || Date.now().toString(),
+                        megaFolderId: MEGA_FOLDER_ID,
+                        uploadDate: new Date().toISOString()
+                    });
+                    
+                    updateUploadedFilesList();
+                    
+                    const percent = (uploadedMegaFiles.length / (uploadedMegaFiles.length + 1)) * 100;
+                    document.getElementById('progressFill').style.width = `${percent}%`;
+                    document.getElementById('uploadStatusMsg').innerHTML = `<i class="fas fa-check-circle"></i> Uploaded: ${file.name}`;
+                    
+                    setTimeout(() => {
+                        document.getElementById('uploadStatusMsg').innerHTML = '';
+                    }, 2000);
+                },
+                onComplete: function(files) {
+                    document.getElementById('uploadProgressBar').style.display = 'none';
+                    document.getElementById('progressFill').style.width = '0%';
+                    showToast(`✅ ${uploadedMegaFiles.length} file(s) uploaded to MEGA!`);
+                },
+                onError: function(error) {
+                    console.error('Upload error:', error);
+                    showToast('MEGA upload error: ' + error, true);
+                }
+            });
+        } else {
+            console.log("MEGA Uploader not loaded yet, retrying...");
+            setTimeout(initMEGAWidget, 500);
+        }
+    }
+    
+    function updateUploadedFilesList() {
+        const container = document.getElementById('uploadedFilesList');
+        if (!container) return;
+        
+        if (uploadedMegaFiles.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        let html = '<div style="margin-top: 10px;"><strong>Uploaded to MEGA:</strong></div>';
+        uploadedMegaFiles.forEach((file, idx) => {
+            html += `
+                <div class="file-item">
+                    <span><i class="fas fa-check-circle" style="color:#10B981;"></i> ${file.fileName} (${(file.fileSize / 1024 / 1024).toFixed(2)} MB)</span>
+                    <button type="button" class="btn-outline" style="padding:4px 12px;" onclick="window.removeMegaFile(${idx})">
+                        <i class="fas fa-trash"></i> Remove
+                    </button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+    
+    window.removeMegaFile = (idx) => {
+        uploadedMegaFiles.splice(idx, 1);
+        updateUploadedFilesList();
+        showToast('File removed from upload list');
+    };
+
+    // DOM Elements
+    const signupBtn = document.getElementById('signupBtn'), loginBtn = document.getElementById('loginBtn');
+    const adminBtn = document.getElementById('adminBtn'), logoutBtn = document.getElementById('logoutBtn');
+    const authModal = document.getElementById('authModal'), modalTitle = document.getElementById('modalTitle');
+    const authEmail = document.getElementById('authEmail'), authPassword = document.getElementById('authPassword');
+    const authSubmitBtn = document.getElementById('authSubmitBtn'), closeModalBtn = document.getElementById('closeModalBtn');
+    const switchAuthMode = document.getElementById('switchAuthMode');
+    const clientPanel = document.getElementById('clientPanel'), adminPanel = document.getElementById('adminPanel');
+    const publicHero = document.getElementById('publicHero');
+    const projectForm = document.getElementById('projectForm');
+    const uploadProgressBar = document.getElementById('uploadProgressBar'), progressFill = document.getElementById('progressFill');
+    const uploadStatusMsg = document.getElementById('uploadStatusMsg'), submitProjectBtn = document.getElementById('submitProjectBtn');
+    const clientProjectsContainer = document.getElementById('clientProjectsContainer');
+
+    let currentUser = null, isAdminMode = false, isLoginMode = true, unsubscribeProjects = null;
+
+    function showToast(msg, isError = false) {
+        const toast = document.createElement('div'); toast.className = 'toast';
+        toast.style.background = isError ? '#2D1B2E' : '#1F2A3E';
+        toast.style.borderLeftColor = isError ? '#EF4444' : '#D0AFFF';
+        toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${msg}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3500);
+    }
+    
+    function resetPanels() { 
+        clientPanel.style.display = 'none'; 
+        adminPanel.style.display = 'none'; 
+        publicHero.style.display = 'block'; 
+    }
+
+    async function loadClientProjects(email) {
+        const snapshot = await db.collection('projects').where('clientEmail', '==', email).orderBy('createdAt', 'desc').get();
+        if (snapshot.empty) { 
+            clientProjectsContainer.innerHTML = '<div style="text-align:center; padding:40px;"><i class="fas fa-cloud-upload-alt fa-2x"></i><p>No projects yet. Submit your first reel!</p><p style="font-size:0.8rem; margin-top:8px;"><i class="fas fa-folder-open"></i> MEGA Folder: ' + MEGA_FOLDER_ID + '</p></div>'; 
+            return; 
+        }
+        let html = '';
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            html += `
+                <div class="project-card">
+                    <div style="display:flex; justify-content:space-between; flex-wrap:wrap;">
+                        <div>
+                            <strong>🎬 ${escapeHtml(data.projectTitle)}</strong> 
+                            <span class="project-status status-${data.status}">${data.status}</span>
+                            <span class="mega-badge"><i class="fas fa-lock"></i> MEGA</span>
+                        </div>
+                        <small>📅 Deadline: ${data.deadline || 'N/A'}</small>
+                    </div>
+                    <div style="margin-top:8px;">${escapeHtml(data.description?.substring(0, 100))}...</div>
+                    <div><i class="fas fa-video"></i> ${data.videoCount || 0} clip(s) on MEGA</div>
+                    <div><small>Submitted: ${data.createdAt?.toDate?.().toLocaleString() || 'Just now'}</small></div>
+                    <div style="margin-top:8px;"><small><i class="fas fa-folder-open"></i> MEGA Folder: <a href="${MEGA_FOLDER_URL}" target="_blank" style="color:#D0AFFF;">View on MEGA</a></small></div>
+                </div>
+            `;
+        });
+        clientProjectsContainer.innerHTML = html;
+    }
+
+    function loadAdminDashboard() {
+        if (unsubscribeProjects) unsubscribeProjects();
+        const tbody = document.getElementById('adminTableBody');
+        const statusFilter = document.getElementById('statusFilter');
+        
+        const fetchData = () => {
+            let query = db.collection('projects').orderBy('createdAt', 'desc');
+            unsubscribeProjects = query.onSnapshot(snapshot => {
+                let projects = [];
+                snapshot.forEach(doc => { projects.push({ id: doc.id, ...doc.data() }); });
+                
+                const filter = statusFilter.value;
+                let filtered = filter === 'all' ? projects : projects.filter(p => p.status === filter);
+                
+                const pending = projects.filter(p => p.status === 'pending').length;
+                const processing = projects.filter(p => p.status === 'processing').length;
+                const completed = projects.filter(p => p.status === 'completed').length;
+                const uniqueClients = new Set(projects.map(p => p.clientEmail)).size;
+                const totalVideos = projects.reduce((sum, p) => sum + (p.videoCount || 0), 0);
+                
+                document.getElementById('pendingCount').innerText = pending;
+                document.getElementById('processingCount').innerText = processing;
+                document.getElementById('completedCount').innerText = completed;
+                document.getElementById('totalClients').innerText = uniqueClients;
+                document.getElementById('totalVideos').innerText = totalVideos;
+                
+                if (filtered.length === 0) { 
+                    tbody.innerHTML = '<tr><td colspan="8">No projects found</td></tr>'; 
+                    return; 
+                }
+                
+                let rows = '';
+                filtered.forEach(project => {
+                    const statusClass = `status-${project.status}`;
+                    const deadlineDate = project.deadline ? new Date(project.deadline).toLocaleDateString() : 'Not set';
+                    
+                    let videoHtml = '';
+                    if (project.videoData && project.videoData.length > 0) {
+                        project.videoData.forEach((vid, idx) => {
+                            videoHtml += `
+                                <a href="${vid.megaUrl}" target="_blank" class="video-link">
+                                    <i class="fas fa-play-circle"></i> Clip ${idx+1}
+                                </a>
+                            `;
+                        });
+                    } else {
+                        videoHtml = '<span style="opacity:0.5;">No videos</span>';
+                    }
+                    
+                    rows += `
+                        <tr>
+                            <td><strong>${escapeHtml(project.fullName || 'N/A')}</strong><br><small>${escapeHtml(project.clientEmail)}</small></td>
+                            <td>📞 ${escapeHtml(project.phoneNumber || 'N/A')}<br>📍 ${escapeHtml(project.city || 'N/A')}</td>
+                            <td><strong>${escapeHtml(project.projectTitle)}</strong><br><small class="mega-badge">MEGA: ${MEGA_FOLDER_ID}</small></td>
+                            <td>📅 ${deadlineDate}</td>
+                            <td><span class="project-status ${statusClass}">${project.status.toUpperCase()}</span></td>
+                            <td><small>${escapeHtml(project.description?.substring(0, 40))}...</small></td>
+                            <td>${videoHtml}<div><small>${project.videoCount || 0} clip(s)</small></div></td>
+                            <td class="action-buttons">
+                                <select class="status-update" data-id="${project.id}" style="background:#1F2937; border-radius:30px; padding:6px;">
+                                    <option ${project.status === 'pending' ? 'selected' : ''} value="pending">Pending</option>
+                                    <option ${project.status === 'processing' ? 'selected' : ''} value="processing">Processing</option>
+                                    <option ${project.status === 'completed' ? 'selected' : ''} value="completed">Completed</option>
+                                </select>
+                                <button class="delete-project" data-id="${project.id}" style="background:none; border:none; color:#EF4444; cursor:pointer;">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = rows;
+                
+                document.querySelectorAll('.status-update').forEach(select => {
+                    select.addEventListener('change', async (e) => {
+                        await db.collection('projects').doc(select.dataset.id).update({ 
+                            status: select.value, 
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp() 
+                        });
+                        showToast(`Status updated to ${select.value}`);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-project').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        if (confirm('Delete this project? Videos remain on MEGA.')) {
+                            await db.collection('projects').doc(btn.dataset.id).delete();
+                            showToast('Project deleted');
+                        }
+                    });
+                });
+            });
+        };
+        fetchData();
+        statusFilter.addEventListener('change', () => fetchData());
+        document.getElementById('refreshAdminBtn').addEventListener('click', () => fetchData());
+    }
+
+    function escapeHtml(str) { 
+        if (!str) return ''; 
+        return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); 
+    }
+
+    // Form submission - store metadata in Firestore
+    projectForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentUser || isAdminMode) { 
+            showToast('Please login as client', true); 
+            return; 
+        }
+        if (uploadedMegaFiles.length === 0) { 
+            showToast('Please upload at least one video clip using MEGA widget', true); 
+            return; 
+        }
+        
+        const fullName = document.getElementById('fullName').value.trim();
+        const phoneNumber = document.getElementById('phoneNumber').value.trim();
+        const city = document.getElementById('city').value.trim();
+        const deadline = document.getElementById('deadline').value;
+        const projectTitle = document.getElementById('projectTitle').value.trim();
+        const description = document.getElementById('description').value.trim();
+        
+        if (!fullName || !phoneNumber || !city || !deadline || !projectTitle || !description) { 
+            showToast('All fields required', true); 
+            return; 
+        }
+        
+        submitProjectBtn.disabled = true; 
+        submitProjectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving project...';
+        
+        try {
+            const projectRef = db.collection('projects').doc();
+            const projectId = projectRef.id;
+            
+            await projectRef.set({
+                projectId, fullName, phoneNumber, city, deadline, projectTitle, description,
+                clientEmail: currentUser.email, clientId: currentUser.uid,
+                videoData: uploadedMegaFiles, 
+                videoCount: uploadedMegaFiles.length,
+                storageProvider: 'MEGA_Official_Widget',
+                megaFolderId: MEGA_FOLDER_ID,
+                megaFolderUrl: MEGA_FOLDER_URL,
+                encrypted: true, 
+                status: 'pending',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            showToast(`✅ Project submitted! ${uploadedMegaFiles.length} clip(s) stored on MEGA`);
+            
+            // Reset form
+            projectForm.reset();
+            uploadedMegaFiles = [];
+            updateUploadedFilesList();
+            await loadClientProjects(currentUser.email);
+            
+        } catch (err) { 
+            showToast('Error: ' + err.message, true);
+        } finally {
+            submitProjectBtn.disabled = false; 
+            submitProjectBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Project';
+        }
+    });
+
+    function openModal(isLogin) { 
+        isLoginMode = isLogin; 
+        modalTitle.innerText = isLogin ? 'Login' : 'Sign Up'; 
+        authSubmitBtn.innerText = isLogin ? 'Login' : 'Sign Up'; 
+        switchAuthMode.innerText = isLogin ? 'Create account' : 'Back to login'; 
+        authModal.style.display = 'flex'; 
+        authEmail.value = ''; 
+        authPassword.value = ''; 
+    }
+    
+    async function handleAuth() {
+        const email = authEmail.value.trim();
+        const password = authPassword.value;
+        if (!email || !password) { 
+            showToast('Email and password required', true); 
+            return; 
+        }
+        try {
+            if (isLoginMode) { 
+                await auth.signInWithEmailAndPassword(email, password); 
+                showToast('Login successful!'); 
+            } else { 
+                await auth.createUserWithEmailAndPassword(email, password); 
+                showToast('Account created! Welcome to TechOneTa'); 
+            }
+            authModal.style.display = 'none';
+        } catch (err) { 
+            showToast(err.message, true); 
+        }
+    }
+    
+    async function adminLogin() {
+        const adminEmail = "techquant@gmail.com";
+        const adminPassword = prompt("Enter Admin Password:");
+        if (!adminPassword) return;
+        try {
+            await auth.signInWithEmailAndPassword(adminEmail, adminPassword);
+            showToast('Admin access granted');
+        } catch (err) { 
+            showToast('Invalid admin credentials', true); 
+        }
+    }
+    
+    function logout() { 
+        auth.signOut().then(() => { 
+            currentUser = null; isAdminMode = false; resetPanels(); 
+            logoutBtn.style.display = 'none'; 
+            if (unsubscribeProjects) unsubscribeProjects(); 
+            showToast('Logged out');
+        }); 
+    }
+
+    auth.onAuthStateChanged(async (user) => {
+        currentUser = user;
+        if (user) {
+            logoutBtn.style.display = 'inline-block';
+            if (user.email === "techquant@gmail.com") {
+                isAdminMode = true; resetPanels(); adminPanel.style.display = 'block'; 
+                loadAdminDashboard(); publicHero.style.display = 'none';
+            } else {
+                isAdminMode = false; resetPanels(); clientPanel.style.display = 'block'; 
+                publicHero.style.display = 'none'; 
+                loadClientProjects(user.email);
+                // Initialize MEGA Widget for client
+                setTimeout(initMEGAWidget, 1000);
+            }
+        } else { 
+            resetPanels(); logoutBtn.style.display = 'none'; 
+            if (unsubscribeProjects) unsubscribeProjects(); 
+            publicHero.style.display = 'block';
+        }
+    });
+
+    signupBtn.onclick = () => openModal(false);
+    loginBtn.onclick = () => openModal(true);
+    adminBtn.onclick = () => adminLogin();
+    logoutBtn.onclick = () => logout();
+    authSubmitBtn.onclick = handleAuth;
+    closeModalBtn.onclick = () => authModal.style.display = 'none';
+    switchAuthMode.onclick = (e) => { 
+        e.preventDefault(); isLoginMode = !isLoginMode; 
+        modalTitle.innerText = isLoginMode ? 'Login' : 'Sign Up'; 
+        authSubmitBtn.innerText = isLoginMode ? 'Login' : 'Sign Up'; 
+        switchAuthMode.innerText = isLoginMode ? 'Create account' : 'Back to login'; 
+    };
+    window.onclick = (e) => { 
+        if (e.target === authModal) authModal.style.display = 'none';
+    };
+    resetPanels();
+    
+    console.log("MEGA Widget configured for folder:", MEGA_FOLDER_URL);
+    console.log("Files upload directly to your MEGA folder - Permanent storage!");
+</script>
+</body>
+</html>
