@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Techquanta Digisoln | Premium Video Editing</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.128.0/build/three.module.js" } }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        :root {
+            --accent: #7c3aed;
+            --accent2: #6366f1;
+            --accent3: #a855f7;
+            --surface: rgba(255,255,255,0.03);
+            --border: rgba(255,255,255,0.08);
+            --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; scroll-behavior: smooth; }
+        body { background: #050508; overflow-x: hidden; color: #e2e8f0; }
+
+        /* ── Advanced Glassmorphism ── */
+        .glass {
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+        }
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            transition: var(--transition);
+        }
+        .glass-card:hover {
+            border-color: rgba(124,58,237,0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 24px 80px -12px rgba(124,58,237,0.2);
+        }
+
+        /* ── Dynamic Button ── */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
+            background-size: 200% 200%;
+            animation: gradShift 4s ease infinite;
+            border: none; cursor: pointer; transition: var(--transition);
+            color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 16px 40px -8px rgba(124,58,237,0.5);
+        }
+        .btn-primary:active { transform: translateY(1px); }
+        .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: none; filter: grayscale(50%); }
+
+        @keyframes gradShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .grad-text {
+            background: linear-gradient(135deg, #c4b5fd, #818cf8, #f0abfc);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+
+        /* ── Interactive Upload Zone ── */
+        .upload-zone {
+            border: 2px dashed rgba(124,58,237,0.3);
+            background: rgba(0,0,0,0.2);
+            transition: var(--transition);
+            cursor: pointer; position: relative; overflow: hidden;
+        }
+        .upload-zone::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at center, rgba(124,58,237,0.1) 0%, transparent 70%);
+            opacity: 0; transition: var(--transition);
+        }
+        .upload-zone:hover::before, .upload-zone.drag-over::before { opacity: 1; }
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: var(--accent2);
+            transform: scale(1.02);
+        }
+        .upload-zone.drag-over { border-style: solid; background: rgba(124,58,237,0.05); }
+
+        /* ── File list items ── */
+        .file-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px; padding: 10px 14px;
+            display: flex; align-items: center; gap: 10px;
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+        }
+        .file-card .remove-btn {
+            margin-left: auto; cursor: pointer; color: #94a3b8;
+            transition: var(--transition); font-size: 14px;
+            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 6px;
+        }
+        .file-card .remove-btn:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+
+        /* ── Progress Indicators ── */
+        .progress-track { background: rgba(255,255,255,0.05); border-radius: 99px; height: 6px; overflow: hidden; margin-top: 8px; }
+        .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), #818cf8); transition: width 0.2s ease-out; width: 0%; }
+        
+        .total-progress-track { background: rgba(0,0,0,0.5); border-radius: 99px; height: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+        .total-progress-fill {
+            height: 100%; border-radius: 99px;
+            background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+            background-size: 200% 100%; animation: gradShift 2s linear infinite;
+            transition: width 0.3s ease-out; width: 0%;
+        }
+
+        /* ── Form Elements ── */
+        .form-input {
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px; padding: 14px 18px; color: #e2e8f0;
+            transition: var(--transition); font-size: 15px; font-weight: 500;
+        }
+        .form-input:focus {
+            outline: none; border-color: var(--accent2);
+            background: rgba(0,0,0,0.5);
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
+        }
+        .form-input option { background: #0f0f16; color: #fff; }
+        .form-label { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #94a3b8; margin-bottom: 10px; }
+
+        /* ── Animations ── */
+        @keyframes slideIn { from { opacity: 0; transform: translateY(15px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        .float-animation { animation: float 8s ease-in-out infinite; }
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050508; }
+        ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+    </style>
+</head>
+<body>
+
+<canvas id="bgCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;"></canvas>
+
+<nav class="fixed top-0 left-0 right-0 z-50 mx-4 mt-4 transition-all duration-300" id="navbar">
+    <div class="glass container mx-auto px-6 py-4 flex justify-between items-center bg-black/40">
+        <div class="flex items-center gap-3">
+            <img src="tq.jpeg" alt="Techquanta Logo" class="w-12 h-12 rounded-xl object-contain shadow-lg shadow-violet-500/20">
+            <span class="text-xl font-extrabold grad-text tracking-tight hidden sm:block">Techquanta Digisoln</span>
+        </div>
+
+        <div id="unauthNav" class="flex gap-3">
+            <button onclick="openModal('login')" class="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition text-sm font-semibold border border-white/10">Log in</button>
+            <button onclick="openModal('signup')" class="btn-primary px-6 py-2.5 rounded-xl text-sm font-bold">Sign Up</button>
+        </div>
+
+        <div id="authNav" class="hidden items-center gap-4">
+            <div class="flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-xl">
+                <span class="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-xs font-bold text-white shadow-inner" id="userInitial">U</span>
+                <span id="userEmailSpan" class="text-sm font-semibold text-slate-200"></span>
+            </div>
+            <button onclick="logoutUser()" class="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 transition text-red-400 text-sm font-bold border border-red-500/20">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<section class="min-h-screen flex items-center justify-center relative pt-20 pb-10">
+    <div class="container mx-auto px-6 text-center z-10">
+        <div class="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-5 py-2 text-sm font-bold text-violet-300 mb-8 animate-[slideIn_0.5s_ease_backwards]">
+            <span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-violet-500"></span></span>
+            Studio Quality, Delivered Fast
+        </div>
+        
+        <div class="float-animation">
+            <h1 class="text-6xl md:text-8xl font-black mb-6 leading-[1.1] tracking-tighter">
+                Elevate Your <br />
+                <span class="grad-text">Visual Story</span>
+            </h1>
+        </div>
+        
+        <blockquote class="text-xl md:text-2xl font-medium italic text-violet-300 mb-6 mx-auto max-w-3xl drop-shadow-md">
+            "Where your raw vision meets cinematic brilliance. Let's make your story unforgettable."
+        </blockquote>
+        
+        <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 font-medium leading-relaxed">
+            Upload raw footage. We apply cinematic cuts, AI color grading, and dynamic effects. Delivered straight to your WhatsApp.
+        </p>
+
+        <div class="flex flex-wrap gap-4 justify-center mb-12">
+            <div class="bg-white/5 border border-white/10 rounded-xl px-5 py-3 flex items-center gap-3 font-semibold text-sm backdrop-blur-sm"><i class="fas fa-wand-magic-sparkles text-violet-400"></i> AI Enhancements</div>
+            <div class="bg-white/5 border border-white/10 rounded-xl px-5 py-3 flex items-center gap-3 font-semibold text-sm backdrop-blur-sm"><i class="fab fa-whatsapp text-green-400"></i> 48hr Delivery</div>
+        </div>
+
+        <button onclick="document.getElementById('uploadSection').scrollIntoView({behavior:'smooth'})"
+            class="btn-primary px-10 py-5 rounded-2xl font-extrabold text-lg inline-flex items-center gap-3 shadow-2xl shadow-violet-500/20">
+            Start New Project <i class="fas fa-arrow-down animate-bounce"></i>
+        </button>
+    </div>
+</section>
+
+<section id="uploadSection" class="py-20 relative">
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-violet-900/5 to-transparent pointer-events-none"></div>
+    <div class="container mx-auto px-6 relative z-10">
+        
+        <div id="loginPrompt" class="text-center glass-card p-12 md:p-16 max-w-2xl mx-auto">
+            <div class="w-24 h-24 bg-gradient-to-br from-violet-600/20 to-indigo-600/20 border border-violet-500/30 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_rgba(124,58,237,0.15)]">
+                <i class="fas fa-lock text-4xl text-violet-400"></i>
+            </div>
+            <h3 class="text-3xl font-extrabold mb-4 text-white">Unlock The Studio</h3>
+            <p class="text-slate-400 mb-8 text-base">Create a free account to upload high-res files and track your editing projects.</p>
+            <button onclick="openModal('signup')" class="btn-primary w-full md:w-auto px-10 py-4 rounded-xl font-bold text-base">Create Free Account</button>
+        </div>
+
+        <div id="orderFormContainer" class="hidden glass-card p-8 md:p-12 max-w-4xl mx-auto">
+            <div class="mb-10 text-center">
+                <h2 class="text-3xl font-extrabold text-white mb-2">Project Details</h2>
+                <p class="text-slate-400 text-sm">Fill out the creative brief and upload your raw assets.</p>
+            </div>
+
+            <form id="orderForm" class="space-y-8">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div><label class="form-label">Creator Name *</label><input type="text" id="fullName" required placeholder="John Doe" class="form-input"></div>
+                    <div><label class="form-label">WhatsApp Number *</label><input type="tel" id="whatsapp" placeholder="+91XXXXXXXXXX" required class="form-input"></div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="form-label">Editing Tier</label>
+                        <select id="editStyle" class="form-input">
+                            <option value="basic">🎬 Basic Cut (Clean & Crisp)</option>
+                            <option value="premium">✨ Premium </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Final Output Length</label>
+                        <select id="duration" class="form-input">
+                            <option value="1"> 1 Minute </option>
+                            <option value="3">2 Minutes</option>
+                            <option value="5">3 Minutes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div><label class="form-label">Required By *</label><input type="date" id="deadline" required class="form-input"></div>
+                    <div><label class="form-label">Creative Direction</label><input type="text" id="vibe" placeholder="e.g. Fast-paced, Moody, Corporate..." class="form-input"></div>
+                </div>
+
+                <div class="pt-4 border-t border-white/5">
+                    <label class="form-label flex justify-between items-end">
+                        Raw Footage *
+                        <span class="text-[10px] text-slate-500 normal-case font-normal bg-black/40 px-2 py-1 rounded">Max 1GB Total</span>
+                    </label>
+                    <div id="uploadZone" class="upload-zone rounded-2xl p-12 text-center" onclick="document.getElementById('clipFiles').click()">
+                        <i class="fas fa-cloud-upload-alt text-6xl text-violet-400 mb-4 block drop-shadow-[0_0_15px_rgba(124,58,237,0.4)]"></i>
+                        <p class="text-white font-bold text-lg mb-2">Drag & Drop Media Files</p>
+                        <p class="text-sm text-slate-400">or click to browse your device</p>
+                        <input type="file" id="clipFiles" multiple accept="video/*,image/*" class="hidden" onchange="updateFilePreview()">
+                    </div>
+
+                    <div id="fileSummary" class="hidden mt-4 text-sm font-semibold text-violet-300 flex items-center gap-2 bg-violet-500/10 p-3 rounded-xl border border-violet-500/20">
+                        <i class="fas fa-layer-group"></i> <span id="fileSummaryText"></span>
+                    </div>
+                    <div id="filePreviewList" class="space-y-3 mt-4 grid sm:grid-cols-2 gap-3"></div>
+                </div>
+
+                <div id="uploadProgressSection" class="hidden bg-black/50 border border-white/10 p-6 rounded-2xl">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-sm font-bold text-white flex items-center gap-2"><i class="fas fa-sync-alt fa-spin text-violet-400"></i> Syncing to Studio...</span>
+                        <span id="uploadPct" class="text-sm font-black text-violet-400">0%</span>
+                    </div>
+                    <div class="total-progress-track mb-6"><div id="totalProgressFill" class="total-progress-fill"></div></div>
+                    <div id="fileProgressList" class="space-y-4 max-h-48 overflow-y-auto pr-2"></div>
+                </div>
+
+                <button type="submit" id="submitOrderBtn" class="btn-primary w-full py-5 rounded-xl font-extrabold text-lg flex items-center justify-center gap-3">
+                    <i class="fas fa-rocket"></i> Launch Project
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<section id="ordersSection" class="py-20 hidden">
+    <div class="container mx-auto px-6 max-w-4xl">
+        <h3 class="text-3xl font-extrabold mb-8 text-white flex items-center gap-3">
+            <i class="fas fa-folder-open text-violet-500"></i> Project Archive
+        </h3>
+        <div id="ordersList" class="space-y-5"></div>
+    </div>
+</section>
+
+<div id="authModal" class="fixed inset-0 bg-black/80 backdrop-blur-xl items-center justify-center z-[100] hidden opacity-0 transition-opacity duration-300">
+    <div class="glass-card p-10 w-full max-w-md relative mx-4 transform scale-95 transition-transform duration-300" id="authModalInner">
+        <button onclick="closeModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 w-10 h-10 rounded-full flex items-center justify-center transition">
+            <i class="fas fa-times"></i>
+        </button>
+        
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg">
+                <i class="fas fa-user-astronaut text-2xl text-white"></i>
+            </div>
+            <h2 id="modalTitle" class="text-2xl font-extrabold text-white">Welcome Back</h2>
+            <p class="text-slate-400 text-sm mt-2">Sign in to manage your projects</p>
+        </div>
+
+        <form id="authForm" class="space-y-5">
+            <div><label class="form-label">Email</label><input type="email" id="authEmail" required class="form-input"></div>
+            <div><label class="form-label">Password</label><input type="password" id="authPassword" required class="form-input"></div>
+            <button type="submit" class="btn-primary w-full py-4 rounded-xl font-bold mt-2 text-base">Continue <i class="fas fa-arrow-right ml-2 text-sm"></i></button>
+        </form>
+
+        <div class="mt-8 pt-6 border-t border-white/10 text-center">
+            <p class="text-slate-400 text-sm">
+                <span id="toggleAuthText">New here?</span>
+                <button onclick="toggleAuthMode()" class="text-violet-400 font-bold hover:text-violet-300 ml-1 transition">Create an account</button>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="fixed bottom-8 right-8 glass px-6 py-4 rounded-xl hidden z-[200] flex items-center gap-3 shadow-[0_10px_40px_rgba(0,0,0,0.5)] transform transition-all duration-300 translate-y-10 opacity-0">
+    <i id="toastIcon" class="fas fa-check-circle text-green-400 text-xl"></i>
+    <span id="toastMessage" class="text-sm font-bold text-white"></span>
+</div>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+    /* ── 3D Background (Optimized) ── */
+    const canvas = document.getElementById('bgCanvas');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
+    camera.position.z = 40;
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+    const pGeo = new THREE.BufferGeometry();
+    const pCount = 1500;
+    const pPos = new Float32Array(pCount * 3);
+    for(let i = 0; i < pCount * 3; i++) pPos[i] = (Math.random() - 0.5) * 150;
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+    const pMat = new THREE.PointsMaterial({ size: 0.15, color: 0x8b5cf6, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending });
+    const particles = new THREE.Points(pGeo, pMat);
+    scene.add(particles);
+
+    const tkGeo = new THREE.TorusKnotGeometry(7, 1.5, 200, 32);
+    const tkMat = new THREE.MeshBasicMaterial({ color: 0x7c3aed, wireframe: true, transparent: true, opacity: 0.05 });
+    const tk = new THREE.Mesh(tkGeo, tkMat);
+    scene.add(tk);
+
+    function animate() {
+        requestAnimationFrame(animate);
+        tk.rotation.x += 0.002; tk.rotation.y += 0.003;
+        particles.rotation.y -= 0.0005;
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+    });
+
+    /* ── Navbar Scroll Effect ── */
+    window.addEventListener('scroll', () => {
+        const nav = document.getElementById('navbar');
+        if (window.scrollY > 50) {
+            nav.classList.add('py-2'); nav.classList.remove('mt-4');
+        } else {
+            nav.classList.remove('py-2'); nav.classList.add('mt-4');
+        }
+    });
+
+    /* ── Firebase Init ── */
+    const app = initializeApp({
+        apiKey: "AIzaSyDEf7bG24BumzAV65FE_6WI9P5xmcSZpaE",
+        authDomain: "techquanta-reel.firebaseapp.com",
+        projectId: "techquanta-reel",
+        storageBucket: "techquanta-reel.firebasestorage.app",
+        messagingSenderId: "626231966731",
+        appId: "1:626231966731:web:8d0e063525f51a01869b0e"
+    });
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    let currentUser = null, currentAuthMode = 'login', selectedFiles = [];
+
+    /* ── UI Helpers ── */
+    function fmtSize(b) { return b<1024?b+' B':b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB'; }
+    function showToast(msg, isErr = false) {
+        const t = document.getElementById('toast'), i = document.getElementById('toastIcon');
+        document.getElementById('toastMessage').textContent = msg;
+        t.style.border = isErr ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(34,197,94,0.3)';
+        i.className = isErr ? 'fas fa-exclamation-triangle text-red-500' : 'fas fa-check-circle text-green-400';
+        t.classList.remove('hidden'); void t.offsetWidth;
+        t.style.transform = 'translateY(0)'; t.style.opacity = '1';
+        clearTimeout(t._t);
+        t._t = setTimeout(() => { t.style.transform='translateY(10px)'; t.style.opacity='0'; setTimeout(()=>t.classList.add('hidden'),300); }, 4000);
+    }
+
+    /* ── File Handling ── */
+    window.updateFilePreview = () => {
+        selectedFiles = Array.from(document.getElementById('clipFiles').files);
+        renderFiles();
+    };
+    function renderFiles() {
+        const c = document.getElementById('filePreviewList'), s = document.getElementById('fileSummary');
+        if(!selectedFiles.length) { c.innerHTML = ''; s.classList.add('hidden'); return; }
+        s.classList.remove('hidden');
+        document.getElementById('fileSummaryText').textContent = `${selectedFiles.length} file(s) · ${fmtSize(selectedFiles.reduce((a,f)=>a+f.size,0))}`;
+        c.innerHTML = selectedFiles.map((f,i) => `
+            <div class="file-card" style="animation-delay: ${i*0.05}s">
+                <div class="w-10 h-10 rounded-lg bg-black/40 flex items-center justify-center shrink-0">
+                    <i class="fas ${f.type.includes('video')?'fa-video text-violet-400':'fa-image text-indigo-400'}"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-bold text-slate-200 truncate">${f.name}</p>
+                    <p class="text-xs text-slate-500">${fmtSize(f.size)}</p>
+                </div>
+                <button type="button" class="remove-btn" onclick="removeFile(${i})"><i class="fas fa-times"></i></button>
+            </div>
+        `).join('');
+    }
+    window.removeFile = (i) => {
+        selectedFiles.splice(i,1);
+        const dt = new DataTransfer(); selectedFiles.forEach(f=>dt.items.add(f));
+        document.getElementById('clipFiles').files = dt.files;
+        renderFiles();
+    };
+
+    /* Drag Drop */
+    const z = document.getElementById('uploadZone');
+    ['dragover','dragleave','drop'].forEach(e => z.addEventListener(e, ev=>{ ev.preventDefault(); if(e==='drop')z.classList.remove('drag-over'); }));
+    z.addEventListener('dragover', ()=>z.classList.add('drag-over')); z.addEventListener('dragleave', ()=>z.classList.remove('drag-over'));
+    z.addEventListener('drop', (e)=>{
+        const dt = new DataTransfer();
+        selectedFiles.forEach(f=>dt.items.add(f));
+        Array.from(e.dataTransfer.files).filter(f=>f.type.includes('video')||f.type.includes('image')).forEach(f=>dt.items.add(f));
+        document.getElementById('clipFiles').files = dt.files;
+        updateFilePreview();
+    });
+
+    /* ── Load Orders ── */
+    async function loadOrders(uid) {
+        const c = document.getElementById('ordersList');
+        try {
+            const snap = await getDocs(query(collection(db, "orders"), where("userId","==",uid), orderBy("createdAt","desc")));
+            if(snap.empty) {
+                c.innerHTML = `<div class="glass-card p-12 text-center border-dashed border-2 border-white/10"><i class="fas fa-box-open text-5xl text-slate-600 mb-4 block"></i><p class="text-slate-400 font-bold">No projects yet. Start one above!</p></div>`;
+                return;
+            }
+            let h = '';
+            snap.forEach((d, i) => {
+                const o = d.data();
+                const done = o.status === 'completed';
+                const isDeleted = o.clipsDeleted || false;
+                h += `
+                    <div class="glass-card p-6 flex flex-col md:flex-row justify-between gap-5" style="animation: slideIn 0.5s ${i*0.1}s backwards">
+                        <div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <span class="font-black text-lg text-white">${o.style==='premium'?'Premium Output':'Standard Output'}</span>
+                                <span class="text-xs px-3 py-1 rounded-md font-bold ${done?'bg-green-500/10 text-green-400':'bg-amber-500/10 text-amber-400'}">${done?'Delivered':'In Studio'}</span>
+                            </div>
+                            <div class="flex gap-4 text-xs font-semibold text-slate-400">
+                                <span class="bg-black/30 px-3 py-1.5 rounded-lg"><i class="fas fa-calendar mr-1.5"></i>Due: ${o.deadline}</span>
+                                <span class="bg-black/30 px-3 py-1.5 rounded-lg"><i class="fas fa-film mr-1.5"></i>${o.clipsCount} Assets ${isDeleted ? '(Archived)' : ''}</span>
+                            </div>
+                        </div>
+                        <div class="text-right flex flex-col justify-between">
+                            <span class="text-xs font-bold text-slate-600">${new Date(o.createdAt).toLocaleDateString()}</span>
+                            ${done ? `<button class="text-sm font-bold text-violet-400 hover:text-violet-300 transition mt-3">View Receipt</button>` : ''}
+                        </div>
+                    </div>`;
+            });
+            c.innerHTML = h;
+        } catch (error) {
+            console.error("Error loading orders:", error);
+            c.innerHTML = `<div class="text-red-400 text-center py-4">Error connecting to project database.</div>`;
+        }
+    }
+
+    /* ── Upload & Submit ── */
+    document.getElementById('orderForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if(!currentUser) return showToast("Log in to upload", true);
+        if(!selectedFiles.length) return showToast("Add media files first", true);
+        
+        const btn = document.getElementById('submitOrderBtn');
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Initializing...';
+        
+        const progSec = document.getElementById('uploadProgressSection'), list = document.getElementById('fileProgressList');
+        progSec.classList.remove('hidden');
+        
+        list.innerHTML = selectedFiles.map((f,i) => `
+            <div class="bg-black/40 p-3 rounded-xl border border-white/5">
+                <div class="flex justify-between text-xs font-bold text-slate-300 mb-2">
+                    <span class="truncate w-3/4">${f.name}</span><span id="fp_${i}" class="text-violet-400">0%</span>
+                </div>
+                <div class="progress-track"><div id="fb_${i}" class="progress-fill"></div></div>
+            </div>
+        `).join('');
+
+        const p = new Array(selectedFiles.length).fill(0);
+        const upd = () => {
+            const avg = p.reduce((a,b)=>a+b,0)/p.length;
+            document.getElementById('totalProgressFill').style.width = avg+'%';
+            document.getElementById('uploadPct').textContent = Math.round(avg)+'%';
+        };
+
+        try {
+            const urls = await Promise.all(selectedFiles.map((f, i) => new Promise((res, rej) => {
+                const task = uploadBytesResumable(ref(storage, `users/${currentUser.uid}/orders/${Date.now()}_${f.name.replace(/[^a-zA-Z0-9.]/g,'_')}`), f);
+                task.on('state_changed', s => {
+                    p[i] = (s.bytesTransferred/s.totalBytes)*100;
+                    document.getElementById(`fb_${i}`).style.width = p[i]+'%';
+                    document.getElementById(`fp_${i}`).textContent = Math.round(p[i])+'%';
+                    upd();
+                }, rej, async () => { p[i]=100; upd(); res(await getDownloadURL(task.snapshot.ref)); });
+            })));
+
+            await addDoc(collection(db, "orders"), {
+                userId: currentUser.uid, userEmail: currentUser.email,
+                fullName: document.getElementById('fullName').value, whatsapp: document.getElementById('whatsapp').value,
+                style: document.getElementById('editStyle').value, duration: document.getElementById('duration').value,
+                deadline: document.getElementById('deadline').value, vibe: document.getElementById('vibe').value,
+                clipUrls: urls, clipsCount: urls.length, clipsDeleted: false, status: "pending", createdAt: new Date().toISOString()
+            });
+
+            showToast("Success! Studio has received your files.");
+            document.getElementById('orderForm').reset();
+            selectedFiles = []; renderFiles(); progSec.classList.add('hidden');
+            loadOrders(currentUser.uid);
+            document.getElementById('ordersSection').scrollIntoView();
+        } catch(err) {
+            showToast("Upload Failed: "+err.message, true);
+        } finally {
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-rocket"></i> Launch Project';
+        }
+    });
+
+    /* ── Auth Flow ── */
+    onAuthStateChanged(auth, async (u) => {
+        currentUser = u;
+        if(u) {
+            document.getElementById('unauthNav').classList.add('hidden'); 
+            document.getElementById('authNav').classList.remove('hidden'); 
+            document.getElementById('authNav').classList.add('flex');
+            document.getElementById('authNav').style.display = ''; // Fixes logout CSS bug
+            
+            document.getElementById('userEmailSpan').textContent = u.email.split('@')[0]; 
+            document.getElementById('userInitial').textContent = u.email[0].toUpperCase();
+            
+            document.getElementById('loginPrompt').classList.add('hidden'); 
+            document.getElementById('orderFormContainer').classList.remove('hidden'); 
+            document.getElementById('ordersSection').classList.remove('hidden');
+            
+            await loadOrders(u.uid); 
+            showToast("Authenticated secure session");
+        } else {
+            document.getElementById('unauthNav').classList.remove('hidden'); 
+            document.getElementById('authNav').classList.add('hidden');
+            document.getElementById('authNav').classList.remove('flex');
+            document.getElementById('authNav').style.display = ''; // Fixes logout CSS bug
+            
+            document.getElementById('loginPrompt').classList.remove('hidden'); 
+            document.getElementById('orderFormContainer').classList.add('hidden'); 
+            document.getElementById('ordersSection').classList.add('hidden');
+        }
+    });
+
+    window.openModal = (m) => {
+        currentAuthMode = m;
+        document.getElementById('modalTitle').textContent = m==='login'?'Welcome Back':'Create Account';
+        document.getElementById('toggleAuthText').textContent = m==='login'?"New here?":"Already registered?";
+        const mod = document.getElementById('authModal'), inn = document.getElementById('authModalInner');
+        mod.classList.remove('hidden'); mod.style.display = 'flex';
+        setTimeout(() => { mod.style.opacity = '1'; inn.style.transform = 'scale(1)'; }, 10);
+    };
+    
+    window.closeModal = () => {
+        const mod = document.getElementById('authModal'), inn = document.getElementById('authModalInner');
+        mod.style.opacity = '0'; inn.style.transform = 'scale(0.95)';
+        setTimeout(() => { mod.classList.add('hidden'); mod.style.display = 'none'; }, 300);
+    };
+    
+    window.toggleAuthMode = () => openModal(currentAuthMode==='login'?'signup':'login');
+    window.logoutUser = async () => { await signOut(auth); showToast("Session ended safely"); };
+
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const em = document.getElementById('authEmail').value, pw = document.getElementById('authPassword').value;
+        const btn = document.querySelector('#authForm button[type="submit"]'); // Robust button targeting
+        const orig = btn.innerHTML;
+        
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        try {
+            if(currentAuthMode === 'signup') {
+                await createUserWithEmailAndPassword(auth, em, pw);
+            } else {
+                await signInWithEmailAndPassword(auth, em, pw);
+            }
+            document.getElementById('authForm').reset(); // Clears form successfully
+            closeModal();
+        } catch(err) { 
+            showToast(err.message, true); 
+        } finally { 
+            btn.disabled = false; 
+            btn.innerHTML = orig; 
+        }
+    });
+</script>
+</body>
+</html>
